@@ -3,6 +3,7 @@ import {
   setTokens,
   clearTokens,
   getAccessToken,
+  getRefreshToken,
   getUserFromToken,
   isTokenValid,
 } from "../utils/token";
@@ -12,11 +13,13 @@ import { AuthContext } from "./auth-context";
 export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(() => {
-    if (!isTokenValid()) {
-      clearTokens();
-      return null;
+    // Only set user immediately if access token is currently valid
+    if (isTokenValid()) {
+      return getUserFromToken();
     }
-    return getUserFromToken();
+    // Do NOT clear tokens here: if access token is expired or missing,
+    // a valid refresh token might exist to restore the session in initializeAuth.
+    return null;
   });
 
   // Verify and fetch fresh user profile on initial mount
@@ -24,8 +27,11 @@ export const AuthProvider = ({ children }) => {
     let active = true;
 
     const initializeAuth = async () => {
-      const token = getAccessToken();
-      if (!token || !isTokenValid(token)) {
+      const accessToken = getAccessToken();
+      const refreshToken = getRefreshToken();
+
+      // If no tokens exist at all, clear any residual state and stop
+      if (!accessToken && !refreshToken) {
         if (active) {
           clearTokens();
           setUser(null);
@@ -34,21 +40,62 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
-      try {
-        const userProfile = await authApi.getMe();
-        if (active) {
-          setUser(userProfile);
+      // If access token is valid, attempt to fetch user profile
+      if (accessToken && isTokenValid(accessToken)) {
+        try {
+          const userProfile = await authApi.getMe();
+          if (active) {
+            setUser(userProfile);
+          }
+        } catch (error) {
+          // If profile fetch fails with 401 and refresh wasn't able to recover
+          if (active && (!error.config?._retry || error.response?.status === 401)) {
+            clearTokens();
+            setUser(null);
+          }
+        } finally {
+          if (active) {
+            setLoading(false);
+          }
         }
-      } catch (error) {
-        // Axios interceptor will attempt refresh; if that also fails, clear
-        if (active && (!error.config?._retry || error.response?.status === 401)) {
-          clearTokens();
-          setUser(null);
+        return;
+      }
+
+      // If access token is missing or expired, but refresh token exists, attempt refresh
+      if (refreshToken) {
+        try {
+          const refreshData = await authApi.refreshToken(refreshToken);
+          const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
+            refreshData;
+          setTokens({
+            accessToken: newAccessToken,
+            refreshToken: newRefreshToken,
+          });
+
+          // Fetch full user profile with newly acquired access token
+          const userProfile = await authApi.getMe();
+          if (active) {
+            setUser(userProfile);
+          }
+        } catch (refreshError) {
+          console.warn("Failed to restore session via refresh token:", refreshError.message);
+          if (active) {
+            clearTokens();
+            setUser(null);
+          }
+        } finally {
+          if (active) {
+            setLoading(false);
+          }
         }
-      } finally {
-        if (active) {
-          setLoading(false);
-        }
+        return;
+      }
+
+      // Access token was invalid and no refresh token exists
+      if (active) {
+        clearTokens();
+        setUser(null);
+        setLoading(false);
       }
     };
 
@@ -72,15 +119,14 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   /**
-   * Register a new user
+   * Register a new user (role omitted for security)
    */
   const register = useCallback(
-    async ({ name, email, password, role = "user", preferences }) => {
+    async ({ name, email, password, preferences }) => {
       const data = await authApi.register({
         name,
         email,
         password,
-        role,
         preferences,
       });
       const { user: registeredUser, accessToken, refreshToken } = data;
@@ -92,19 +138,42 @@ export const AuthProvider = ({ children }) => {
     [],
   );
 
-  // Backward compatibility alias for existing code
+  // Backward compatibility alias supporting both object and argument signatures
   const signup = useCallback(
-    async (name, email, password) => {
-      return register({ name, email, password });
+    async (firstArg, email, password) => {
+      if (typeof firstArg === "object" && firstArg !== null) {
+        return register(firstArg);
+      }
+      return register({ name: firstArg, email, password });
     },
     [register],
   );
 
   /**
-   * Logout user and revoke tokens
+   * Logout user and revoke tokens on server
    */
   const logout = useCallback(async () => {
     try {
+      const accessToken = getAccessToken();
+      const refreshToken = getRefreshToken();
+
+      // If access token is expired or missing, attempt refresh before logout
+      // so that the server can authenticate the request and revoke the refresh token in DB
+      if ((!accessToken || !isTokenValid(accessToken)) && refreshToken) {
+        try {
+          const refreshData = await authApi.refreshToken(refreshToken);
+          setTokens({
+            accessToken: refreshData.accessToken,
+            refreshToken: refreshData.refreshToken,
+          });
+        } catch (refreshErr) {
+          console.warn(
+            "Could not refresh token before logout:",
+            refreshErr.message,
+          );
+        }
+      }
+
       await authApi.logout();
     } catch (error) {
       console.warn("Backend logout failed or was unreachable:", error.message);

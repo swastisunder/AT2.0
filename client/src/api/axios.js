@@ -4,16 +4,24 @@ import {
   getRefreshToken,
   setTokens,
   clearTokens,
-} from "../utils/token";
+} from "../utils/token.js";
+
+const env =
+  typeof import.meta !== "undefined" && import.meta.env
+    ? import.meta.env
+    : (typeof globalThis !== "undefined" && globalThis.process?.env) || {};
+
 
 const API_URL =
-  import.meta.env.VITE_API_BASE_URL ||
-  import.meta.env.VITE_API_URL ||
+  env.VITE_API_BASE_URL ||
+  env.VITE_API_URL ||
   "https://ssbat.onrender.com/api";
+
 
 const axiosInstance = axios.create({
   baseURL: API_URL,
   timeout: 15000,
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
@@ -67,7 +75,11 @@ axiosInstance.interceptors.response.use(
       originalRequest?.url?.includes("/auth/refresh");
 
     // Handle 401 Unauthorized
-    if (error.response?.status === 401 && !originalRequest?._retry && !isAuthRoute) {
+    if (
+      error.response?.status === 401 &&
+      !originalRequest?._retry &&
+      !isAuthRoute
+    ) {
       const refreshToken = getRefreshToken();
 
       if (!refreshToken) {
@@ -82,11 +94,12 @@ axiosInstance.interceptors.response.use(
       }
 
       if (isRefreshing) {
-        // Queue pending requests while refreshing
+        // Queue pending requests while refreshing and set _retry before retrying
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
           .then((token) => {
+            originalRequest._retry = true;
             originalRequest.headers.Authorization = `Bearer ${token}`;
             return axiosInstance(originalRequest);
           })
@@ -97,9 +110,11 @@ axiosInstance.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const refreshResponse = await axios.post(`${API_URL}/auth/refresh`, {
-          refreshToken,
-        });
+        const refreshResponse = await axios.post(
+          `${API_URL}/auth/refresh`,
+          { refreshToken },
+          { withCredentials: true },
+        );
 
         const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
           refreshResponse.data.data;

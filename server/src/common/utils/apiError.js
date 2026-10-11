@@ -22,6 +22,10 @@ class ApiError extends Error {
     return new ApiError(403, message);
   }
 
+  static serviceUnavailable(message = "Service temporarily unavailable") {
+    return new ApiError(503, message);
+  }
+
   static notFound(message = "Not Found") {
     return new ApiError(404, message);
   }

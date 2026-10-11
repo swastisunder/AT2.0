@@ -1,13 +1,12 @@
 import mongoose from "mongoose";
-import dns from "node:dns";
-import { MONGO_URI } from "./envConfig.js";
+import { MONGO_URI, NODE_ENV } from "./envConfig.js";
 import logger from "../utils/logger.js";
-
-dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(MONGO_URI);
+    const conn = await mongoose.connect(MONGO_URI, {
+      autoIndex: NODE_ENV !== "production",
+    });
     logger.success(`MongoDB connected: ${conn.connection.host}`);
     return conn;
   } catch (error) {

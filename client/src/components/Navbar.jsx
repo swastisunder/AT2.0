@@ -1,59 +1,26 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Atom, LogOut } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useAuth } from "@/hooks/useAuth";
 
-
-const sarcasticMessages = [
-  "👀 Dark mode exists, you know.",
-  "Your eyes are crying. Just sayin'. 🌞",
-  "I can see you squinting. 😎",
-  "This is light mode. You're on your own. 🌞",
-  "Dark mode is literally one click away. 👆",
-  "Who hurt you? Dark mode is right there.",
-  "You're still in light mode? Bold choice. 🤡",
-  "Real pirates use dark mode. 🏴‍☠️",
-  "Your eyes called. They want dark mode.",
-  "I'm not saying you need dark mode... but I'm not NOT saying it. 👀",
-  "The moon is jealous right now. 🌙",
-  "Dark mode is free. Just saying. 💸",
-  "Your battery is crying in light mode. 🔋",
-  "I bet you stare at the sun too. ☀️",
-  "Dark mode: exists. You: ignore. 🤷",
-  "☀️ Congratulations, you've chosen the brightest timeline.",
-  "I can hear your retinas screaming from here. 😬",
-  "This is why we can't have nice dark things.",
-  "Your screen is basically a flashlight now. 🔦",
-  "Are you trying to communicate with the sun? 🌻",
-  "I'd offer you sunglasses, but I'm just code. 🕶️",
-  "Light mode? In this economy?",
-  "You must really enjoy replacing your monitor bulbs.",
-  "Every pixel in light mode files a complaint. 📄",
-  "Dark mode called. It misses you.",
+const calmLightMessages = [
+  "Small daily actions compound into remarkable results.",
+  "Focus on your next atomic action today.",
+  "Consistency beats intensity every single time.",
+  "Build a daily rhythm you can sustain effortlessly.",
+  "Clear your smallest open loop. Own your day.",
+  "Progress is built one small habit at a time.",
+  "A calm system keeps momentum moving forward.",
+  "Show up today. Let compounding do the rest.",
 ];
 
 const playfulDarkMessages = [
-  "🌙 Welcome to the dark side. Your eyes thank you.",
-  "🖤 Ahh, much better. Your retinas are applauding.",
   "✨ Dark mode engaged. Productivity +10%.",
-  "🌌 You've chosen wisely. The night is strong with this one.",
-  "😌 Thank you for saving your eyes. They'll remember this.",
-  "🦉 Wise move. Even owls approve.",
-  "💡 Light is overrated. Darkness is where the magic happens.",
-  "🎉 Dark mode activated. Your screen just got cooler.",
-  "🌃 Smooth move. Your battery and eyes are both smiling.",
-  "☕ Dark mode on. Coffee taste better in the dark, too.",
-  "🕶️ Smooth operator. The dark suits you.",
-  "🌒 Your screen just exhaled.",
-  "🔮 The void welcomes you with open arms.",
-  "🖤 Ah, silence for your eyeballs.",
-  "🌟 Stars align. Dark mode on.",
-  "🦇 You've gone full night mode. Respect.",
-  "📉 Brightness dropped. Vibes rose.",
-  "🌑 Even the moon is jealous of your setup.",
-  "🎧 Dark mode: the lofi of themes.",
-  "🪄 Presto! Your screen is now a calm cave.",
+  "🌌 Deep focus mode active. Make it count.",
+  "🖤 Calm workspace, clear priorities.",
+  "🦉 Focused night rhythm. Keep the signal strong.",
+  "☕ Night mode on. Calm progress awaits.",
 ];
 
 export default function Navbar() {
@@ -74,6 +41,9 @@ export default function Navbar() {
   const lightIntervalRef = useRef(null);
   const prevIsDarkRef = useRef(isDark);
 
+  const handleThemeChange = useCallback((theme) => {
+    setIsDark(theme === "dark");
+  }, []);
 
   // Scroll listener
   useEffect(() => {
@@ -82,10 +52,9 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Light mode: show a random message immediately, then rotate every 60 seconds
+  // Light mode message rotator
   useEffect(() => {
     if (!isDark) {
-      // Hide any dark message immediately
       const hideDarkMessageTimer = window.setTimeout(
         () => setShowDarkMessage(false),
         0,
@@ -94,16 +63,13 @@ export default function Navbar() {
 
       const showRandomLightMessage = () => {
         const randomIndex = Math.floor(
-          Math.random() * sarcasticMessages.length,
+          Math.random() * calmLightMessages.length,
         );
-        setMessage(sarcasticMessages[randomIndex]);
+        setMessage(calmLightMessages[randomIndex]);
         setShowMessage(true);
       };
 
-      // Show first message immediately
       showRandomLightMessage();
-
-      // Set up interval to change message every 60 seconds
       lightIntervalRef.current = setInterval(showRandomLightMessage, 60000);
 
       return () => {
@@ -117,14 +83,13 @@ export default function Navbar() {
     return undefined;
   }, [isDark]);
 
-  // Dark mode transition: show a new playful message, disappear after 5 seconds
+  // Dark mode transition message
   useEffect(() => {
     const wasDark = prevIsDarkRef.current;
     prevIsDarkRef.current = isDark;
 
     if (wasDark !== isDark) {
       if (isDark) {
-        // Switched to dark mode
         if (darkTimerRef.current) clearTimeout(darkTimerRef.current);
         const showDarkMessageTimer = window.setTimeout(() => {
           const randomIndex = Math.floor(
@@ -135,13 +100,11 @@ export default function Navbar() {
         }, 0);
         darkTimerRef.current = setTimeout(() => {
           setShowDarkMessage(false);
-        }, 5000); // 5 seconds
+        }, 5000);
         return () => {
           clearTimeout(showDarkMessageTimer);
           if (darkTimerRef.current) clearTimeout(darkTimerRef.current);
         };
-      } else {
-        // Switched to light mode – handled by the previous effect
       }
     }
 
@@ -151,11 +114,21 @@ export default function Navbar() {
   }, [isDark]);
 
   const links = [
-    ["Habit", "#habits"],
-    ["Task", "#ai-tasks"],
-    ["How It Works", "#how-it-works"],
-    ["Pricing", "#pricing"],
+    ["Habit", "/#habits"],
+    ["Task", "/#ai-tasks"],
+    ["How It Works", "/#how-it-works"],
+    ["Pricing", "/#pricing"],
   ];
+
+  const handleNavClick = (href) => {
+    if (href.startsWith("/#") && window.location.pathname === "/") {
+      const id = href.replace("/#", "");
+      const elem = document.getElementById(id);
+      if (elem) {
+        elem.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  };
 
   return (
     <div className="sticky top-4 z-50 flex w-full flex-col items-center px-4 transition-all duration-300">
@@ -178,31 +151,22 @@ export default function Navbar() {
         {/* Center links */}
         {links.length > 0 && (
           <div className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-6 sm:flex">
-            {links.map(([label, href]) =>
-              href.startsWith("#") ? (
-                <a
-                  key={label}
-                  href={href}
-                  className="relative text-sm font-semibold text-muted-foreground no-underline transition-colors hover:text-foreground after:absolute after:-bottom-1 after:left-0 after:h-px after:w-full after:origin-left after:scale-x-0 after:bg-[var(--accent-atomic)] after:transition-transform after:duration-200 hover:after:scale-x-100"
-                >
-                  {label}
-                </a>
-              ) : (
-                <Link
-                  key={label}
-                  to={href}
-                  className="relative text-sm font-semibold text-muted-foreground no-underline transition-colors hover:text-foreground after:absolute after:-bottom-1 after:left-0 after:h-px after:w-full after:origin-left after:scale-x-0 after:bg-[var(--accent-atomic)] after:transition-transform after:duration-200 hover:after:scale-x-100"
-                >
-                  {label}
-                </Link>
-              ),
-            )}
+            {links.map(([label, href]) => (
+              <Link
+                key={label}
+                to={href}
+                onClick={() => handleNavClick(href)}
+                className="relative text-sm font-semibold text-muted-foreground no-underline transition-colors hover:text-foreground after:absolute after:-bottom-1 after:left-0 after:h-px after:w-full after:origin-left after:scale-x-0 after:bg-[var(--accent-atomic)] after:transition-transform after:duration-200 hover:after:scale-x-100"
+              >
+                {label}
+              </Link>
+            ))}
           </div>
         )}
 
         {/* Right actions */}
         <div className="flex shrink-0 items-center gap-3">
-          <ThemeToggle onThemeChange={(theme) => setIsDark(theme === "dark")} />
+          <ThemeToggle onThemeChange={handleThemeChange} />
 
           {user ? (
             <div className="flex items-center gap-2.5">
@@ -238,7 +202,6 @@ export default function Navbar() {
             </>
           )}
         </div>
-
       </nav>
 
       {/* Message container */}

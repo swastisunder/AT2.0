@@ -363,7 +363,8 @@ export default function HabitTrackerModule() {
   useEffect(() => {
     const timer = window.setTimeout(() => setShowHint(true), 12000);
     return () => window.clearTimeout(timer);
-  }, [selectedDate, completed, firstUnchecked?.id]);
+  }, [selectedDate, firstUnchecked?.id]);
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => setIsVisible(entry.isIntersecting),

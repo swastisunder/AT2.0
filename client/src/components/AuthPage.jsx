@@ -13,10 +13,19 @@ import "./AuthPage.css";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string().min(1, "Password is required"),
 });
-const signupSchema = loginSchema.extend({
+
+const signupSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Please enter a valid email"),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(
+      /^(?=.*[a-zA-Z])(?=.*\d)/,
+      "Password must contain at least one letter and one number",
+    ),
 });
 
 function FieldError({ error }) {
@@ -24,7 +33,7 @@ function FieldError({ error }) {
 }
 
 export default function AuthPage({ initialMode = "login" }) {
-  const { login, signup, register } = useAuth();
+  const { login, register } = useAuth();
   const navigate = useNavigate();
   const [isSignup, setIsSignup] = useState(initialMode === "signup");
   const [loginError, setLoginError] = useState("");
@@ -63,8 +72,7 @@ export default function AuthPage({ initialMode = "login" }) {
   const submitSignup = async (data) => {
     try {
       setSignupError("");
-      const registerFn = register || signup;
-      await registerFn({
+      await register({
         name: data.name,
         email: data.email,
         password: data.password,
@@ -80,29 +88,26 @@ export default function AuthPage({ initialMode = "login" }) {
     }
   };
 
-
   return (
     <main className="auth-page">
-      {/* Background glows remain absolute */}
+      {/* Background glows */}
       <div className="auth-page-glow auth-page-glow-one" />
       <div className="auth-page-glow auth-page-glow-two" />
 
-      {/* Navbar – will stretch full width */}
+      {/* Navbar */}
       <Navbar />
 
-      {/* Slider container – centered with top margin to clear navbar */}
+      {/* Slider container */}
       <div className="auth-slider-wrapper">
         <section
           className={`auth-slider ${isSignup ? "is-signup" : "is-login"}`}
           aria-label="Account access"
         >
-          {/* ... form panels and overlay – unchanged ... */}
+          {/* Login panel */}
           <div className="auth-form-panel auth-login-panel">
             <form
               className="auth-form"
-              onSubmit={(event) => {
-                void loginForm.handleSubmit(submitLogin)(event);
-              }}
+              onSubmit={loginForm.handleSubmit(submitLogin)}
               noValidate
             >
               <span className="auth-kicker">Welcome back</span>
@@ -125,9 +130,6 @@ export default function AuthPage({ initialMode = "login" }) {
                 <div>
                   <div className="auth-label-row">
                     <Label htmlFor="login-password">Password</Label>
-                    <button type="button" className="auth-text-button">
-                      Forgot password?
-                    </button>
                   </div>
                   <Input
                     id="login-password"
@@ -157,12 +159,11 @@ export default function AuthPage({ initialMode = "login" }) {
             </form>
           </div>
 
+          {/* Signup panel */}
           <div className="auth-form-panel auth-signup-panel">
             <form
               className="auth-form"
-              onSubmit={(event) => {
-                void signupForm.handleSubmit(submitSignup)(event);
-              }}
+              onSubmit={signupForm.handleSubmit(submitSignup)}
               noValidate
             >
               <span className="auth-kicker">Start small, today</span>
@@ -196,7 +197,7 @@ export default function AuthPage({ initialMode = "login" }) {
                   <Input
                     id="signup-password"
                     type="password"
-                    placeholder="At least 6 characters"
+                    placeholder="At least 8 characters (letters & numbers)"
                     {...signupForm.register("password")}
                   />
                   <FieldError error={signupForm.formState.errors.password} />

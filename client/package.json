@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
+    "test:auth": "node scripts/test-client-auth.js",
     "preview": "vite preview"
+
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
