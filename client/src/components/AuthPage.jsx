@@ -13,7 +13,7 @@ import "./AuthPage.css";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email"),
-  password: z.string().min(4, "Password must be at least 4 characters"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
 });
 const signupSchema = loginSchema.extend({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -24,7 +24,7 @@ function FieldError({ error }) {
 }
 
 export default function AuthPage({ initialMode = "login" }) {
-  const { login, signup } = useAuth();
+  const { login, signup, register } = useAuth();
   const navigate = useNavigate();
   const [isSignup, setIsSignup] = useState(initialMode === "signup");
   const [loginError, setLoginError] = useState("");
@@ -51,19 +51,35 @@ export default function AuthPage({ initialMode = "login" }) {
       await login(data.email, data.password);
       navigate("/");
     } catch (error) {
-      setLoginError(error.response?.data?.message || "Login failed");
+      const message =
+        error.response?.data?.message ||
+        error.normalized?.message ||
+        error.message ||
+        "Login failed";
+      setLoginError(message);
     }
   };
 
   const submitSignup = async (data) => {
     try {
       setSignupError("");
-      await signup(data.name, data.email, data.password);
-      switchMode(false);
+      const registerFn = register || signup;
+      await registerFn({
+        name: data.name,
+        email: data.email,
+        password: data.password,
+      });
+      navigate("/");
     } catch (error) {
-      setSignupError(error.response?.data?.message || "Signup failed");
+      const message =
+        error.response?.data?.message ||
+        error.normalized?.message ||
+        error.message ||
+        "Signup failed";
+      setSignupError(message);
     }
   };
+
 
   return (
     <main className="auth-page">
@@ -180,7 +196,7 @@ export default function AuthPage({ initialMode = "login" }) {
                   <Input
                     id="signup-password"
                     type="password"
-                    placeholder="At least 4 characters"
+                    placeholder="At least 6 characters"
                     {...signupForm.register("password")}
                   />
                   <FieldError error={signupForm.formState.errors.password} />
