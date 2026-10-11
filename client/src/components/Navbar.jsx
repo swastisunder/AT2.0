@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Atom } from "lucide-react";
+import { ArrowRight, Atom, LogOut } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
+import { useAuth } from "@/hooks/useAuth";
+
 
 const sarcasticMessages = [
   "👀 Dark mode exists, you know.",
@@ -55,7 +57,9 @@ const playfulDarkMessages = [
 ];
 
 export default function Navbar() {
+  const { user, logout } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
+
   const [isDark, setIsDark] = useState(() => {
     const stored = window.localStorage.getItem("atomictask-theme");
     if (stored === "dark") return true;
@@ -200,20 +204,41 @@ export default function Navbar() {
         <div className="flex shrink-0 items-center gap-3">
           <ThemeToggle onThemeChange={(theme) => setIsDark(theme === "dark")} />
 
-          <Link
-            to="/login"
-            className="hidden text-sm font-semibold text-muted-foreground no-underline transition-colors hover:text-foreground sm:block"
-          >
-            Log in
-          </Link>
-          <Link
-            to="/signup"
-            className="flex items-center gap-1.5 rounded-full bg-[var(--accent-atomic)] px-4 py-2 text-sm font-extrabold text-[var(--accent-atomic-foreground)] no-underline transition-all duration-200 hover:brightness-105 active:scale-95"
-          >
-            Get started
-            <ArrowRight className="size-3.5" />
-          </Link>
+          {user ? (
+            <div className="flex items-center gap-2.5">
+              <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-border/80 bg-muted/60 px-3 py-1 text-xs font-semibold text-foreground">
+                <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
+                {user.name || user.email?.split("@")[0]}
+              </span>
+              <button
+                type="button"
+                onClick={logout}
+                className="flex items-center gap-1.5 rounded-full border border-border/80 bg-background px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-all duration-200 hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive active:scale-95"
+                title="Log out"
+              >
+                <LogOut className="size-3.5" />
+                <span className="hidden sm:inline">Log out</span>
+              </button>
+            </div>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className="hidden text-sm font-semibold text-muted-foreground no-underline transition-colors hover:text-foreground sm:block"
+              >
+                Log in
+              </Link>
+              <Link
+                to="/signup"
+                className="flex items-center gap-1.5 rounded-full bg-[var(--accent-atomic)] px-4 py-2 text-sm font-extrabold text-[var(--accent-atomic-foreground)] no-underline transition-all duration-200 hover:brightness-105 active:scale-95"
+              >
+                Get started
+                <ArrowRight className="size-3.5" />
+              </Link>
+            </>
+          )}
         </div>
+
       </nav>
 
       {/* Message container */}
