@@ -1,12 +1,20 @@
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
+import { CORS_ORIGINS } from "./common/config/envConfig.js";
 import ApiResponse from "./common/utils/apiResponse.js";
 import authRouter from "./modules/auth/auth.routes.js";
 
 const app = express();
 
-app.use(cors({ origin: true, credentials: true }));
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      callback(null, !origin || CORS_ORIGINS.includes(origin));
+    },
+    credentials: true,
+  }),
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));

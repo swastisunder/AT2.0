@@ -9,7 +9,7 @@ import {
 const API_URL =
   import.meta.env.VITE_API_BASE_URL ||
   import.meta.env.VITE_API_URL ||
-  "http://localhost:8080/api";
+  "https://ssbat.onrender.com/api";
 
 const axiosInstance = axios.create({
   baseURL: API_URL,
