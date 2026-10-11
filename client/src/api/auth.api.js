@@ -1,4 +1,4 @@
-import axiosInstance from "./axios";
+import axiosInstance from "./axios.js";
 
 /**
  * Authentication API Service
@@ -7,7 +7,7 @@ import axiosInstance from "./axios";
 export const authApi = {
   /**
    * Register a new user
-   * @param {{ name: string, email: string, password: string, role?: string, preferences?: object }} data
+   * @param {{ name: string, email: string, password: string, preferences?: object }} data
    * @returns {Promise<{ user: object, accessToken: string, refreshToken: string }>}
    */
   async register(data) {
@@ -57,4 +57,3 @@ export const authApi = {
 };
 
 export default authApi;
-

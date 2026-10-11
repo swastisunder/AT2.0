@@ -1,4 +1,4 @@
-import { lazy } from "react";
+import { lazy, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import CursorGrid from "@/components/CursorGrid/CursorGrid";
 import DeferredModule from "@/components/DeferredModule";
@@ -24,6 +24,17 @@ const AITaskTrackerModule = lazy(
 
 export default function Home() {
   const { animationEnabled } = usePerformance();
+
+  useEffect(() => {
+    if (window.location.hash) {
+      const id = window.location.hash.replace("#", "");
+      const elem = document.getElementById(id);
+      if (elem) {
+        setTimeout(() => elem.scrollIntoView({ behavior: "smooth" }), 150);
+      }
+    }
+  }, []);
+
 
   return (
     <div className="relative min-h-screen bg-background text-foreground">

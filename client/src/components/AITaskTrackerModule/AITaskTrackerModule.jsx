@@ -158,6 +158,8 @@ export default function AITaskTrackerModule() {
   const [selectedDate, setSelectedDate] = useState(today);
   const [tasksByDate, setTasksByDate] = useState(createInitialTasks);
   const [celebrate, setCelebrate] = useState(false);
+  const celebrateTimerRef = useRef(null);
+
   const [draggedTask, setDraggedTask] = useState(null);
   const trackerRef = useRef(null);
   const [isVisible, setIsVisible] = useState(false);
@@ -170,6 +172,14 @@ export default function AITaskTrackerModule() {
   };
 
   useEffect(() => {
+    return () => {
+      if (celebrateTimerRef.current) {
+        clearTimeout(celebrateTimerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => setIsVisible(entry.isIntersecting),
       { threshold: 0.12 },
@@ -177,6 +187,7 @@ export default function AITaskTrackerModule() {
     if (trackerRef.current) observer.observe(trackerRef.current);
     return () => observer.disconnect();
   }, []);
+
 
   const suggestTasks = (event) => {
     event.preventDefault();
@@ -220,8 +231,12 @@ export default function AITaskTrackerModule() {
     );
     if (!task?.done) {
       setCelebrate(true);
-      window.setTimeout(() => setCelebrate(false), 700);
+      if (celebrateTimerRef.current) {
+        clearTimeout(celebrateTimerRef.current);
+      }
+      celebrateTimerRef.current = setTimeout(() => setCelebrate(false), 700);
     }
+
   };
   const removeTask = (id) => {
     updateTasks((current) => current.filter((task) => task.id !== id));

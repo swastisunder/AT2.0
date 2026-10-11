@@ -1,16 +1,20 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { randomUUID } from "node:crypto";
 import {
   JWT_SECRET,
   JWT_EXPIRES_IN,
   JWT_REFRESH_SECRET,
   JWT_REFRESH_EXPIRES_IN,
+  JWT_ISSUER,
+  JWT_AUDIENCE,
 } from "../../common/config/envConfig.js";
 import {
   USER_ROLES,
   USER_ROLE_VALUES,
 } from "../../common/utils/constand/user.js";
+import { hashToken } from "../../common/utils/crypto.js";
 
 const userSchema = new mongoose.Schema(
   {
@@ -36,7 +40,7 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: [true, "Password is required"],
-      minlength: [6, "Password must be at least 6 characters"],
+      minlength: [8, "Password must be at least 8 characters"],
       select: false,
     },
     role: {
@@ -67,6 +71,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       select: false,
     },
+    tokenVersion: {
+      type: Number,
+      default: 0,
+    },
     isActive: {
       type: Boolean,
       default: true,
@@ -75,8 +83,16 @@ const userSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-// Hash password before saving if modified
+// Hash token helper attached to schema
+userSchema.statics.hashToken = hashToken;
+userSchema.methods.hashToken = hashToken;
+
+// Hash password before saving if modified & increment tokenVersion on password update
 userSchema.pre("save", async function (next) {
+  if (this.isModified("password") && !this.isNew) {
+    this.tokenVersion = (this.tokenVersion || 0) + 1;
+  }
+
   if (!this.isModified("password")) return next();
 
   try {
@@ -99,19 +115,36 @@ userSchema.methods.generateAccessToken = function () {
     {
       id: this._id,
       email: this.email,
+      name: this.name,
       role: this.role,
+      tokenVersion: this.tokenVersion,
+      jti: randomUUID(),
     },
+
     JWT_SECRET,
-    { expiresIn: JWT_EXPIRES_IN },
+    {
+      expiresIn: JWT_EXPIRES_IN,
+      algorithm: "HS256",
+      issuer: JWT_ISSUER,
+      audience: JWT_AUDIENCE,
+    },
   );
 };
 
 // Instance method to generate JWT refresh token
 userSchema.methods.generateRefreshToken = function () {
-  return jwt.sign({ id: this._id }, JWT_REFRESH_SECRET, {
-    expiresIn: JWT_REFRESH_EXPIRES_IN,
-  });
+  return jwt.sign(
+    { id: this._id, jti: randomUUID() },
+    JWT_REFRESH_SECRET,
+    {
+      expiresIn: JWT_REFRESH_EXPIRES_IN,
+      algorithm: "HS256",
+      issuer: JWT_ISSUER,
+      audience: JWT_AUDIENCE,
+    },
+  );
 };
+
 
 // Sanitize user object when returned to client
 userSchema.methods.toJSON = function () {

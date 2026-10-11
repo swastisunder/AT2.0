@@ -6,14 +6,21 @@
   "type": "module",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "test:auth-logout": "node scripts/verify-auth-logout.js",
+    "test:security": "node scripts/test-all-security.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "chalk": "^5.4.1",
+    "compression": "^1.8.2",
     "cors": "^2.8.6",
     "dotenv": "^16.4.7",
     "express": "^4.21.1",
+    "express-mongo-sanitize": "^2.2.0",
+    "express-rate-limit": "^8.7.1",
+    "helmet": "^8.3.0",
+    "hpp": "^0.2.3",
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^8.8.4",

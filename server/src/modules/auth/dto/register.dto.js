@@ -1,9 +1,5 @@
 import Joi from "joi";
 import BaseDto from "../../../common/dto/baseDto.js";
-import {
-  USER_ROLES,
-  USER_ROLE_VALUES,
-} from "../../../common/utils/constand/user.js";
 
 class RegisterDto extends BaseDto {
   static schema = Joi.object({
@@ -20,18 +16,19 @@ class RegisterDto extends BaseDto {
       "string.email": "Please provide a valid email address",
       "any.required": "Email is required",
     }),
-    password: Joi.string().min(6).max(128).required().messages({
-      "string.base": "Password must be a string",
-      "string.empty": "Password is required",
-      "string.min": "Password must be at least 6 characters long",
-      "string.max": "Password cannot exceed 128 characters",
-      "any.required": "Password is required",
-    }),
-    role: Joi.string()
-      .valid(...USER_ROLE_VALUES)
-      .default(USER_ROLES.USER)
+    password: Joi.string()
+      .min(8)
+      .max(128)
+      .pattern(/^(?=.*[a-zA-Z])(?=.*\d)/)
+      .required()
       .messages({
-        "any.only": `Role must be one of: ${USER_ROLE_VALUES.join(", ")}`,
+        "string.base": "Password must be a string",
+        "string.empty": "Password is required",
+        "string.min": "Password must be at least 8 characters long",
+        "string.max": "Password cannot exceed 128 characters",
+        "string.pattern.base":
+          "Password must contain at least one letter and one number",
+        "any.required": "Password is required",
       }),
     preferences: Joi.object({
       theme: Joi.string().valid("light", "dark", "system").default("system"),

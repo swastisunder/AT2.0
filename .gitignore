@@ -1,0 +1,6 @@
+a.cjs
+allcode.txt
+a.js
+.env
+.env.*
+!.env.example
