@@ -1,6 +1,7 @@
 import express from "express";
 import morgan from "morgan";
 import ApiResponse from "./common/utils/apiResponse.js";
+import authRouter from "./modules/auth/auth.routes.js";
 
 const app = express();
 
@@ -9,8 +10,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
 
 // Routes
-// TODO: mount module routers here
-// e.g. app.use("/api/example", exampleRouter);
+app.use("/api/auth", authRouter);
 
 app.get("/", (_req, res) => {
   res.json({ status: "ok" });
