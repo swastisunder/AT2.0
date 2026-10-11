@@ -10,8 +10,14 @@ cp .env.example .env
 npm run dev
 ```
 
-Set `VITE_API_BASE_URL` to the backend origin including `/api`, for example
-`http://localhost:8080/api`. Production builds are static: `npm run build`.
+Set `VITE_API_BASE_URL` to the backend origin including `/api`. The production
+API is `https://ssbat.onrender.com/api`; use
+`http://localhost:8080/api` in your local `.env` when running the backend
+locally. On Vercel, configure `VITE_API_BASE_URL=https://ssbat.onrender.com/api`
+for production deployments. On Render, configure
+`CORS_ORIGINS=https://ssbat.vercel.app` (comma-separated for additional
+trusted origins). The server also allows `http://localhost:5173` by default for
+local development. Production builds are static: `npm run build`.
 
 ## Quality checks
 
