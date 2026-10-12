@@ -16,20 +16,12 @@ class RegisterDto extends BaseDto {
       "string.email": "Please provide a valid email address",
       "any.required": "Email is required",
     }),
-    password: Joi.string()
-      .min(8)
-      .max(128)
-      .pattern(/^(?=.*[a-zA-Z])(?=.*\d)/)
-      .required()
-      .messages({
-        "string.base": "Password must be a string",
-        "string.empty": "Password is required",
-        "string.min": "Password must be at least 8 characters long",
-        "string.max": "Password cannot exceed 128 characters",
-        "string.pattern.base":
-          "Password must contain at least one letter and one number",
-        "any.required": "Password is required",
-      }),
+    password: Joi.string().min(4).required().messages({
+      "string.base": "Password must be a string",
+      "string.empty": "Password is required",
+      "string.min": "Password must be at least 4 characters",
+      "any.required": "Password is required",
+    }),
     preferences: Joi.object({
       theme: Joi.string().valid("light", "dark", "system").default("system"),
       dailyTaskGoal: Joi.number().integer().min(1).max(100).default(5),

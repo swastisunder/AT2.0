@@ -188,7 +188,6 @@ export default function AITaskTrackerModule() {
     return () => observer.disconnect();
   }, []);
 
-
   const suggestTasks = (event) => {
     event.preventDefault();
     if (!prompt.trim()) return;
@@ -236,7 +235,6 @@ export default function AITaskTrackerModule() {
       }
       celebrateTimerRef.current = setTimeout(() => setCelebrate(false), 700);
     }
-
   };
   const removeTask = (id) => {
     updateTasks((current) => current.filter((task) => task.id !== id));

@@ -17,4 +17,3 @@ class BaseDto {
 }
 
 export default BaseDto;
-

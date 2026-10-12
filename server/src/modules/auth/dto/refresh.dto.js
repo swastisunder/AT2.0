@@ -13,4 +13,3 @@ class RefreshDto extends BaseDto {
 }
 
 export default RefreshDto;
-

@@ -81,10 +81,14 @@ const runTests = async () => {
   assert.equal(regRes.payload.data.user.preferences.dailyTaskGoal, 8);
 
   // Direct DB check
-  const dbUser = await User.findOne({ email: testEmail }).select("+refreshToken");
+  const dbUser = await User.findOne({ email: testEmail }).select(
+    "+refreshToken",
+  );
   assert.equal(dbUser.role, "user");
   assert.notEqual(dbUser.refreshToken, regRes.payload.data.refreshToken); // refreshToken must be hashed in DB!
-  console.log("✔ Role forced to 'user', preferences preserved, refresh token hashed in DB.");
+  console.log(
+    "✔ Role forced to 'user', preferences preserved, refresh token hashed in DB.",
+  );
 
   // 5. Duplicate email test (Race condition / unique constraint)
   console.log("\n[Test 5] Duplicate email registration...");
@@ -100,28 +104,33 @@ const runTests = async () => {
   assert.equal(dupRes.payload.message, "User with this email already exists");
   console.log("✔ Duplicate registration returned 409 Conflict.");
 
-  // 6. Password policy validation
-  console.log("\n[Test 6] Password policy validation...");
-  const weakPassRes1 = await request("/auth/register", {
+  // 6. Password policy validation (must be at least 4 characters)
+  console.log(
+    "\n[Test 6] Password policy validation (at least 4 characters)...",
+  );
+  const shortPassRes = await request("/auth/register", {
     method: "POST",
     body: {
-      name: "Weak Pass",
-      email: `weak1-${uniqueId}@example.com`,
-      password: "short1", // < 8 characters
+      name: "Short Pass",
+      email: `short-${uniqueId}@example.com`,
+      password: "123", // < 4 characters
     },
   });
-  assert.equal(weakPassRes1.response.status, 400);
+  assert.equal(shortPassRes.response.status, 400);
 
-  const weakPassRes2 = await request("/auth/register", {
+  // A 4-character password (without letter/number restrictions) should succeed
+  const fourCharPassRes = await request("/auth/register", {
     method: "POST",
     body: {
-      name: "Weak Pass",
-      email: `weak2-${uniqueId}@example.com`,
-      password: "allletterslongpass", // no digit
+      name: "Four Char Pass",
+      email: `fourchar-${uniqueId}@example.com`,
+      password: "1234",
     },
   });
-  assert.equal(weakPassRes2.response.status, 400);
-  console.log("✔ Weak passwords correctly rejected.");
+  assert.equal(fourCharPassRes.response.status, 201);
+  console.log(
+    "✔ Passwords with < 4 characters rejected, 4-character passwords accepted.",
+  );
 
   // 7. Refresh route validation (RefreshDto)
   console.log("\n[Test 7] Refresh route validation (RefreshDto)...");
@@ -150,7 +159,9 @@ const runTests = async () => {
   console.log("✔ Access token contains issuer, audience, and tokenVersion.");
 
   // 9. Atomic Refresh Token Rotation & Replay Protection
-  console.log("\n[Test 9] Atomic refresh token rotation and replay prevention...");
+  console.log(
+    "\n[Test 9] Atomic refresh token rotation and replay prevention...",
+  );
   const refreshRes1 = await request("/auth/refresh", {
     method: "POST",
     body: { refreshToken },
@@ -165,7 +176,9 @@ const runTests = async () => {
     body: { refreshToken },
   });
   assert.equal(replayRes.response.status, 401);
-  console.log("✔ Refresh rotation atomic: old token invalidated, replay blocked with 401.");
+  console.log(
+    "✔ Refresh rotation atomic: old token invalidated, replay blocked with 401.",
+  );
 
   // 10. Access /api/auth/me with new access token
   console.log("\n[Test 10] Access profile with rotated access token...");
@@ -203,19 +216,27 @@ const runTests = async () => {
     body: { name: "TV User", email: user2Email, password: user2Password },
   });
   const u2AccessToken = reg2.payload.data.accessToken;
-  
+
   // Verify token works initially
   const meU2Before = await request("/auth/me", { token: u2AccessToken });
   assert.equal(meU2Before.response.status, 200);
 
   // Directly increment tokenVersion in DB (as would happen on password reset)
-  await User.findOneAndUpdate({ email: user2Email }, { $inc: { tokenVersion: 1 } });
-  
+  await User.findOneAndUpdate(
+    { email: user2Email },
+    { $inc: { tokenVersion: 1 } },
+  );
+
   // Verify prior token is now rejected due to tokenVersion mismatch
   const meU2After = await request("/auth/me", { token: u2AccessToken });
   assert.equal(meU2After.response.status, 401);
-  assert.equal(meU2After.payload.message, "Authentication token expired or revoked");
-  console.log("✔ Token version increment immediately revokes older access tokens.");
+  assert.equal(
+    meU2After.payload.message,
+    "Authentication token expired or revoked",
+  );
+  console.log(
+    "✔ Token version increment immediately revokes older access tokens.",
+  );
 
   // 13. Rate limiting test on login (5 attempts limit)
   console.log("\n[Test 13] Rate limiting on login (5 attempts limit)...");
@@ -237,9 +258,12 @@ const runTests = async () => {
     results.push(res.status);
   }
   console.log("Login attempt status codes:", results);
-  assert.equal(results[results.length - 1], 429, "Expected 6th attempt to be 429 Too Many Requests");
+  assert.equal(
+    results[results.length - 1],
+    429,
+    "Expected 6th attempt to be 429 Too Many Requests",
+  );
   console.log("✔ Rate limiter returned 429 on 6th login attempt.");
-
 
   console.log("\n================================================");
   console.log("ALL SECURITY VERIFICATION TESTS PASSED!");
