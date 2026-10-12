@@ -13,19 +13,13 @@ import "./AuthPage.css";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email"),
-  password: z.string().min(1, "Password is required"),
+  password: z.string().min(4, "Password must be at least 4 characters"),
 });
 
 const signupSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email"),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .regex(
-      /^(?=.*[a-zA-Z])(?=.*\d)/,
-      "Password must contain at least one letter and one number",
-    ),
+  password: z.string().min(4, "Password must be at least 4 characters"),
 });
 
 function FieldError({ error }) {
@@ -197,7 +191,7 @@ export default function AuthPage({ initialMode = "login" }) {
                   <Input
                     id="signup-password"
                     type="password"
-                    placeholder="At least 8 characters (letters & numbers)"
+                    placeholder="At least 4 characters"
                     {...signupForm.register("password")}
                   />
                   <FieldError error={signupForm.formState.errors.password} />

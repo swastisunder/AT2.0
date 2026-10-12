@@ -236,7 +236,9 @@
   font-size: 0.68rem;
   font-weight: 700;
   cursor: pointer;
-  transition: border-color 0.2s, color 0.2s;
+  transition:
+    border-color 0.2s,
+    color 0.2s;
 }
 .quick-add button:hover {
   border-color: var(--accent-atomic);
@@ -376,7 +378,10 @@
   color: var(--muted-foreground);
   cursor: pointer;
   opacity: 0;
-  transition: opacity 0.2s, color 0.2s, background 0.2s;
+  transition:
+    opacity 0.2s,
+    color 0.2s,
+    background 0.2s;
 }
 .task-row:hover .task-delete,
 .task-delete:focus-visible {

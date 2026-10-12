@@ -9,13 +9,13 @@ class LoginDto extends BaseDto {
       "string.email": "Please provide a valid email address",
       "any.required": "Email is required",
     }),
-    password: Joi.string().required().messages({
+    password: Joi.string().min(4).required().messages({
       "string.base": "Password must be a string",
       "string.empty": "Password is required",
+      "string.min": "Password must be at least 4 characters",
       "any.required": "Password is required",
     }),
   });
 }
 
 export default LoginDto;
-

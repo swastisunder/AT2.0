@@ -11,12 +11,8 @@ const env =
     ? import.meta.env
     : (typeof globalThis !== "undefined" && globalThis.process?.env) || {};
 
-
 const API_URL =
-  env.VITE_API_BASE_URL ||
-  env.VITE_API_URL ||
-  "https://ssbat.onrender.com/api";
-
+  env.VITE_API_BASE_URL || env.VITE_API_URL || "https://ssbat.onrender.com/api";
 
 const axiosInstance = axios.create({
   baseURL: API_URL,

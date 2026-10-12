@@ -40,7 +40,7 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: [true, "Password is required"],
-      minlength: [8, "Password must be at least 8 characters"],
+      minlength: [4, "Password must be at least 4 characters"],
       select: false,
     },
     role: {
@@ -133,18 +133,13 @@ userSchema.methods.generateAccessToken = function () {
 
 // Instance method to generate JWT refresh token
 userSchema.methods.generateRefreshToken = function () {
-  return jwt.sign(
-    { id: this._id, jti: randomUUID() },
-    JWT_REFRESH_SECRET,
-    {
-      expiresIn: JWT_REFRESH_EXPIRES_IN,
-      algorithm: "HS256",
-      issuer: JWT_ISSUER,
-      audience: JWT_AUDIENCE,
-    },
-  );
+  return jwt.sign({ id: this._id, jti: randomUUID() }, JWT_REFRESH_SECRET, {
+    expiresIn: JWT_REFRESH_EXPIRES_IN,
+    algorithm: "HS256",
+    issuer: JWT_ISSUER,
+    audience: JWT_AUDIENCE,
+  });
 };
-
 
 // Sanitize user object when returned to client
 userSchema.methods.toJSON = function () {

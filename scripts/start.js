@@ -16,7 +16,9 @@ const serverProc = spawn(npmCmd, ["start"], {
 
 process.on("SIGINT", () => {
   if (isWin && serverProc.pid) {
-    spawn("taskkill", ["/pid", String(serverProc.pid), "/T", "/F"], { stdio: "ignore" });
+    spawn("taskkill", ["/pid", String(serverProc.pid), "/T", "/F"], {
+      stdio: "ignore",
+    });
   } else {
     serverProc.kill("SIGINT");
   }
@@ -26,4 +28,3 @@ process.on("SIGINT", () => {
 serverProc.on("exit", (code) => {
   process.exit(code || 0);
 });
-

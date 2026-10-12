@@ -1,9 +1,4 @@
-import {
-  BarChart3,
-  CheckCheck,
-  Flame,
-  GitBranch,
-} from "lucide-react";
+import { BarChart3, CheckCheck, Flame, GitBranch } from "lucide-react";
 
 const shapes = [
   [10, 15, 24, 45],
@@ -58,7 +53,9 @@ function OrbitRing({ size, duration, reverse, icon: Icon }) {
     >
       <div
         className="absolute left-1/2 top-0 flex size-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-card shadow-sm"
-        style={{ animation: `orbit-counter-spin ${duration} linear infinite ${reverse ? "reverse" : "normal"}` }}
+        style={{
+          animation: `orbit-counter-spin ${duration} linear infinite ${reverse ? "reverse" : "normal"}`,
+        }}
       >
         <Icon className="size-4 text-muted-foreground" />
       </div>
@@ -71,7 +68,10 @@ export function OrbitDiagram() {
     <div className="relative mx-auto aspect-square w-full max-w-[280px] sm:max-w-[340px]">
       <div
         className="absolute inset-0 -z-10 rounded-full blur-3xl"
-        style={{ background: "color-mix(in oklch, var(--accent-atomic) 22%, transparent)" }}
+        style={{
+          background:
+            "color-mix(in oklch, var(--accent-atomic) 22%, transparent)",
+        }}
       />
       <div className="absolute inset-0 flex items-center justify-center">
         <div
@@ -94,7 +94,12 @@ export function OrbitDiagram() {
 
 export function AtomMark({ className = "" }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      className={className}
+      aria-hidden="true"
+    >
       {[0, 60, 120].map((rotation) => (
         <ellipse
           key={rotation}

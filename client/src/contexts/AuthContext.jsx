@@ -49,7 +49,10 @@ export const AuthProvider = ({ children }) => {
           }
         } catch (error) {
           // If profile fetch fails with 401 and refresh wasn't able to recover
-          if (active && (!error.config?._retry || error.response?.status === 401)) {
+          if (
+            active &&
+            (!error.config?._retry || error.response?.status === 401)
+          ) {
             clearTokens();
             setUser(null);
           }
@@ -78,7 +81,10 @@ export const AuthProvider = ({ children }) => {
             setUser(userProfile);
           }
         } catch (refreshError) {
-          console.warn("Failed to restore session via refresh token:", refreshError.message);
+          console.warn(
+            "Failed to restore session via refresh token:",
+            refreshError.message,
+          );
           if (active) {
             clearTokens();
             setUser(null);
